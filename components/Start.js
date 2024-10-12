@@ -22,6 +22,7 @@ const Start = ({ navigation }) => {
       >
         <View style={styles.contentContainer}>
           <View style={styles.inputContainer}>
+            {/* Name input */}
             <TextInput
               style={styles.textInput}
               value={name}
@@ -29,6 +30,8 @@ const Start = ({ navigation }) => {
               placeholder="Your Name"
               placeholderTextColor="#757083"
             />
+
+            {/* Color selection */}
             <Text style={styles.colorText}>Choose Background Color:</Text>
             <View style={styles.colorContainer}>
               {colors.map((color) => (
@@ -43,7 +46,13 @@ const Start = ({ navigation }) => {
                 />
               ))}
             </View>
+
+            {/* Start chatting button */}
             <TouchableOpacity
+              accessible={true}
+              accessibilityLabel="Start Chatting"
+              accessibilityHint="Lets you proceed to the next screen to start chatting"
+              accessibilityRole="Button"
               style={styles.button}
               onPress={() =>
                 navigation.navigate("Chat", {
@@ -75,12 +84,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: "30%", // This pushes the content up, effectively moving the white box down
   },
-  title: {
-    fontSize: 25,
-    fontWeight: "600",
-    color: "#FFFFFF",
-    marginBottom: 40,
-  },
   inputContainer: {
     backgroundColor: "white",
     padding: 20,
@@ -96,13 +99,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontSize: 16,
     fontWeight: "300",
-    color: "#757083",
+    color: "#171717",
     opacity: 0.5,
   },
   colorText: {
     fontSize: 16,
     fontWeight: "300",
-    color: "#757083",
+    color: "#171717",
     marginBottom: 10,
   },
   colorContainer: {
