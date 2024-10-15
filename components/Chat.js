@@ -10,47 +10,37 @@ import {
 } from "firebase/firestore";
 
 const Chat = ({ route, navigation, db, auth }) => {
-  const { userID, name, backgroundColor } = route.params;
+  const { name, backgroundColor } = route.params;
   const [messages, setMessages] = useState([]);
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
     navigation.setOptions({ title: name });
-
-    // Set up the user object
-    if (auth.currentUser) {
-      setUser({
-        _id: auth.currentUser.uid,
-        name: name,
-      });
-    }
-
     const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setMessages(
-        snapshot.docs.map((doc) => ({
+    const unsubMessages = onSnapshot(q, (docs) => {
+      let newMessages = [];
+      docs.forEach((doc) => {
+        newMessages.push({
           _id: doc.id,
           ...doc.data(),
-          createdAt: doc.data().createdAt.toDate(),
-          user: doc.data().user || { _id: "unknown", name: "Unknown" },
-        }))
-      );
+          createdAt: new Date(doc.data().createdAt.toMillis()),
+        });
+      });
+      setMessages(newMessages);
     });
-
-    // Clean up listener on unmount
-    return () => unsubscribe();
+    return () => {
+      if (unsubMessages) unsubMessages();
+    };
   }, []);
 
-  // Function to handle sending messages
   const onSend = (newMessages = []) => {
-    const message = newMessages[0];
-    if (user) {
-      addDoc(collection(db, "messages"), {
-        ...message,
-        createdAt: new Date(),
-        user: user,
-      });
-    }
+    addDoc(collection(db, "messages"), {
+      ...newMessages[0],
+      createdAt: new Date(),
+      user: {
+        _id: auth.currentUser.uid,
+        name: name,
+      },
+    });
   };
 
   // Custom rendering for chat bubbles
@@ -94,10 +84,6 @@ const Chat = ({ route, navigation, db, auth }) => {
     );
   };
 
-  if (!user) {
-    return null; // or a loading indicator
-  }
-
   // iOS keyboard appearance handling, android = default
   return (
     <View style={[styles.container, { backgroundColor }]}>
@@ -111,7 +97,10 @@ const Chat = ({ route, navigation, db, auth }) => {
           renderBubble={renderBubble}
           renderInputToolbar={renderInputToolbar}
           onSend={(messages) => onSend(messages)}
-          user={user}
+          user={{
+            _id: auth.currentUser.uid,
+            name: name,
+          }}
         />
       </KeyboardAvoidingView>
     </View>
