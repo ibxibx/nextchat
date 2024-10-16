@@ -8,29 +8,53 @@ import {
   query,
   orderBy,
 } from "firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const Chat = ({ route, navigation, db, auth }) => {
+const Chat = ({ route, navigation, db, auth, isConnected }) => {
   const { name, backgroundColor } = route.params;
   const [messages, setMessages] = useState([]);
 
+  const loadCachedMessages = async () => {
+    const cachedMessages = (await AsyncStorage.getItem("messages")) || "[]";
+    setMessages(JSON.parse(cachedMessages));
+  };
+
+  const cacheMessages = async (messagesToCache) => {
+    try {
+      await AsyncStorage.setItem("messages", JSON.stringify(messagesToCache));
+    } catch (error) {
+      console.log("Error caching messages:", error.message);
+    }
+  };
+
   useEffect(() => {
     navigation.setOptions({ title: name });
-    const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
-    const unsubMessages = onSnapshot(q, (docs) => {
-      let newMessages = [];
-      docs.forEach((doc) => {
-        newMessages.push({
+    let unsubMessages;
+    if (isConnected === true) {
+      // unregister current onSnapshot() listener to avoid registering multiple listeners when
+      // useEffect code is re-executed.
+      if (unsubMessages) unsubMessages();
+      unsubMessages = null;
+
+      const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+      unsubMessages = onSnapshot(q, (querySnapshot) => {
+        const newMessages = querySnapshot.docs.map((doc) => ({
           _id: doc.id,
           ...doc.data(),
           createdAt: new Date(doc.data().createdAt.toMillis()),
-        });
+        }));
+        setMessages(newMessages);
+        cacheMessages(newMessages);
       });
-      setMessages(newMessages);
-    });
+    } else {
+      loadCachedMessages();
+    }
+
+    // Clean up code
     return () => {
       if (unsubMessages) unsubMessages();
     };
-  }, []);
+  }, [isConnected]);
 
   const onSend = (newMessages = []) => {
     addDoc(collection(db, "messages"), {
@@ -43,7 +67,6 @@ const Chat = ({ route, navigation, db, auth }) => {
     });
   };
 
-  // Custom rendering for chat bubbles
   const renderBubble = (props) => {
     return (
       <Bubble
@@ -63,28 +86,30 @@ const Chat = ({ route, navigation, db, auth }) => {
         }}
         timeTextStyle={{
           right: {
-            color: "#55555",
+            color: "#707070",
           },
         }}
       />
     );
   };
 
-  // Render the input field
   const renderInputToolbar = (props) => {
-    return (
-      <InputToolbar
-        {...props}
-        containerStyle={styles.inputToolbar}
-        textInputStyle={styles.textInput}
-        textInputProps={{
-          placeholder: "Type a message...",
-        }}
-      />
-    );
+    if (isConnected) {
+      return (
+        <InputToolbar
+          {...props}
+          containerStyle={styles.inputToolbar}
+          textInputStyle={styles.textInput}
+          textInputProps={{
+            placeholder: "Type a message...",
+          }}
+        />
+      );
+    } else {
+      return null;
+    }
   };
 
-  // iOS keyboard appearance handling, android = default
   return (
     <View style={[styles.container, { backgroundColor }]}>
       <KeyboardAvoidingView
