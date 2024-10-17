@@ -30,12 +30,9 @@ const Chat = ({ route, navigation, db, auth, isConnected }) => {
   useEffect(() => {
     navigation.setOptions({ title: name });
     let unsubMessages;
-    if (isConnected === true) {
-      // unregister current onSnapshot() listener to avoid registering multiple listeners when
-      // useEffect code is re-executed.
-      if (unsubMessages) unsubMessages();
-      unsubMessages = null;
 
+    if (isConnected === true) {
+      // If connected, fetch messages from Firestore
       const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
       unsubMessages = onSnapshot(q, (querySnapshot) => {
         const newMessages = querySnapshot.docs.map((doc) => ({
@@ -47,6 +44,7 @@ const Chat = ({ route, navigation, db, auth, isConnected }) => {
         cacheMessages(newMessages);
       });
     } else {
+      // If not connected, load cached messages
       loadCachedMessages();
     }
 

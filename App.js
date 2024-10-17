@@ -14,7 +14,7 @@ import {
 } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LogBox, Alert } from "react-native";
-import NetInfo from "@react-native-community/netinfo";
+import { useNetInfo } from "@react-native-community/netinfo";
 
 import Start from "./components/Start";
 import Chat from "./components/Chat";
@@ -25,6 +25,7 @@ LogBox.ignoreLogs(["@firebase/auth"]);
 const Stack = createNativeStackNavigator();
 
 const App = () => {
+  const netInfo = useNetInfo();
   const [isConnected, setIsConnected] = useState(null);
   const app = useRef(null);
   const auth = useRef(null);
@@ -65,26 +66,26 @@ const App = () => {
         db.current = getFirestore(app.current);
       }
     }
+  }, []);
 
-    const unsubNetInfo = NetInfo.addEventListener((state) => {
-      setIsConnected(state.isConnected);
-      if (state.isConnected === false) {
-        Alert.alert("Connection Lost!");
+  useEffect(() => {
+    setIsConnected(netInfo.isConnected);
+
+    if (netInfo.isConnected === false) {
+      Alert.alert("Connection Lost!");
+      if (db.current) {
         disableNetwork(db.current).catch((error) =>
           console.log("Error disabling Firestore network:", error)
         );
-      } else if (state.isConnected === true) {
+      }
+    } else if (netInfo.isConnected === true) {
+      if (db.current) {
         enableNetwork(db.current).catch((error) =>
           console.log("Error enabling Firestore network:", error)
         );
       }
-    });
-
-    // Clean up the subscription on unmount
-    return () => {
-      if (unsubNetInfo) unsubNetInfo();
-    };
-  }, []);
+    }
+  }, [netInfo.isConnected]);
 
   if (isConnected === null || !auth.current || !db.current) {
     return null; // or a loading spinner
