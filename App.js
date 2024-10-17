@@ -69,6 +69,7 @@ const App = () => {
   }, []);
 
   useEffect(() => {
+    console.log("NetInfo state: ", netInfo);
     setIsConnected(netInfo.isConnected);
 
     if (netInfo.isConnected === false) {
