@@ -19,16 +19,21 @@ const Chat = ({ route, storage, navigation, db, auth, isConnected }) => {
   let unsubMessages;
 
   useEffect(() => {
+    // Set chat screen title to user's name
     navigation.setOptions({ title: name });
 
     if (isConnected === true) {
+      // Clean up any existing subscription before creating a new one
       if (unsubMessages) unsubMessages();
       unsubMessages = null;
 
+      // Set up real-time message listener
+      // Messages are ordered by creation time in descending order (newest first)
       const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
       unsubMessages = onSnapshot(q, (docs) => {
         let newMessages = [];
         docs.forEach((doc) => {
+          // Transform Firestore data into GiftedChat message format
           const data = doc.data();
           newMessages.push({
             _id: doc.id,
@@ -42,11 +47,14 @@ const Chat = ({ route, storage, navigation, db, auth, isConnected }) => {
             location: data.location || null,
           });
         });
+
+        // Cache messages for offline access
         cacheMessages(newMessages);
         setMessages(newMessages);
       });
     } else loadCachedMessages();
 
+    // Cleanup subscription on component unmount
     return () => {
       if (unsubMessages) unsubMessages();
     };
@@ -97,6 +105,7 @@ const Chat = ({ route, storage, navigation, db, auth, isConnected }) => {
     }
   };
 
+  // Dialog Bubble
   const renderBubble = (props) => {
     return (
       <Bubble
@@ -136,7 +145,7 @@ const Chat = ({ route, storage, navigation, db, auth, isConnected }) => {
 
   const renderCustomView = (props) => {
     const { currentMessage } = props;
-    // render a map
+    // Render a map
     if (
       currentMessage &&
       currentMessage.location &&

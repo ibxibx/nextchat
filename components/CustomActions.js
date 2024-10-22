@@ -17,7 +17,7 @@ const CustomActions = ({
 
   // Console logs to debug props
   console.log("CustomActions Props:", { onSend, storage, userID });
-
+  // Show action sheet with options for sending media
   const onActionPress = () => {
     const options = [
       "Choose From Library",
@@ -62,6 +62,8 @@ const CustomActions = ({
     } else Alert.alert("Permissions haven't been granted.");
   };
 
+  // Generate unique filename for uploaded images
+  // Uses userID and timestamp to ensure uniqueness
   const generateReference = (uri) => {
     // this will get the file name from the uri
     const imageName = uri.split("/")[uri.split("/").length - 1];
@@ -69,6 +71,7 @@ const CustomActions = ({
     return `${userID}-${timeStamp}-${imageName}`;
   };
 
+  // Handle image upload process and send message with image URL
   const uploadAndSendImage = async (imageURI) => {
     try {
       console.log("Starting image upload...");
@@ -86,6 +89,7 @@ const CustomActions = ({
       const blob = await response.blob();
       console.log("Created blob");
 
+      // Convert image URI to blob for Firebase Storage
       await uploadBytes(newUploadRef, blob);
       console.log("Uploaded bytes");
 

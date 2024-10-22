@@ -28,6 +28,7 @@ const Stack = createNativeStackNavigator();
 const App = () => {
   const netInfo = useNetInfo();
   const [isConnected, setIsConnected] = useState(null);
+  // Using refs to maintain persistent Firebase instances across re-renders
   const app = useRef(null);
   const auth = useRef(null);
   const db = useRef(null);
@@ -47,7 +48,8 @@ const App = () => {
     if (!app.current) {
       app.current = initializeApp(firebaseConfig);
 
-      // Initialize Firebase Auth with AsyncStorage
+      // Initialize Auth with persistent AsyncStorage
+      // This allows users to remain logged in even after closing the app
       if (!auth.current) {
         try {
           auth.current = initializeAuth(app.current, {
@@ -75,10 +77,13 @@ const App = () => {
     }
   }, []);
 
+  // Handle network connectivity changes
   useEffect(() => {
     console.log("NetInfo state: ", netInfo);
     setIsConnected(netInfo.isConnected);
 
+    // Disable Firestore network access when offline to prevent errors
+    // and enable it when back online
     if (netInfo.isConnected === false) {
       Alert.alert("Connection Lost!");
       if (db.current) {
