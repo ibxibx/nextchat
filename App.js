@@ -15,6 +15,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LogBox, Alert } from "react-native";
 import { useNetInfo } from "@react-native-community/netinfo";
+import { getStorage } from "firebase/storage";
 
 import Start from "./components/Start";
 import Chat from "./components/Chat";
@@ -30,6 +31,7 @@ const App = () => {
   const app = useRef(null);
   const auth = useRef(null);
   const db = useRef(null);
+  const storage = useRef(null);
 
   const firebaseConfig = {
     apiKey: "AIzaSyDvONhbriPLGztGhdVW6FnUTxJPoEIKa6s",
@@ -65,6 +67,11 @@ const App = () => {
       if (!db.current) {
         db.current = getFirestore(app.current);
       }
+
+      // Initialize Firebase Storage
+      if (!storage.current) {
+        storage.current = getStorage(app.current);
+      }
     }
   }, []);
 
@@ -88,7 +95,12 @@ const App = () => {
     }
   }, [netInfo.isConnected]);
 
-  if (isConnected === null || !auth.current || !db.current) {
+  if (
+    isConnected === null ||
+    !auth.current ||
+    !db.current ||
+    !storage.current
+  ) {
     return null; // or a loading spinner
   }
 
@@ -103,6 +115,7 @@ const App = () => {
             <Chat
               isConnected={isConnected}
               db={db.current}
+              storage={storage.current}
               auth={auth.current}
               {...props}
             />
