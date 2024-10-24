@@ -16,53 +16,56 @@ const Chat = ({ route, storage, navigation, db, auth, isConnected }) => {
   const { name, backgroundColor, userID } = route.params;
   const [messages, setMessages] = useState([]);
 
-  let unsubMessages;
-
   useEffect(() => {
     // Set chat screen title to user's name
+    let unsubMessages = null;
     navigation.setOptions({ title: name });
 
-    if (isConnected === true) {
+    if (isConnected) {
       // Clean up any existing subscription before creating a new one
-      if (unsubMessages) unsubMessages();
-      unsubMessages = null;
+      if (unsubMessages) {
+        unsubMessages();
+      }
+
+      const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
 
       // Set up real-time message listener
       // Messages are ordered by creation time in descending order (newest first)
-      const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
-      unsubMessages = onSnapshot(q, (docs) => {
+      unsubMessages = onSnapshot(q, (documentsSnapshot) => {
+        // Initialize an empty array to store the new messages
         let newMessages = [];
-        docs.forEach((doc) => {
-          // Transform Firestore data into GiftedChat message format
-          const data = doc.data();
+        // Iterate through each document in the snapshot
+        documentsSnapshot.forEach((doc) => {
           newMessages.push({
-            _id: doc.id,
-            text: data.text,
-            createdAt: new Date(data.createdAt.toMillis()),
-            user: {
-              _id: data.user._id,
-              name: data.user.name,
-            },
-            image: data.image || null,
-            location: data.location || null,
+            id: doc.id,
+            ...doc.data(),
+            createdAt: new Date(doc.data().createdAt.toMillis()),
           });
-        });
 
-        // Cache messages for offline access
-        cacheMessages(newMessages);
-        setMessages(newMessages);
+          // Cache messages for offline access
+          cacheMessages(newMessages);
+          setMessages(newMessages);
+        });
       });
-    } else loadCachedMessages();
+    } else {
+      Alert.alert("Connection Lost!! Loading from cache.");
+
+      loadCachedMessages();
+    }
 
     // Cleanup subscription on component unmount
     return () => {
-      if (unsubMessages) unsubMessages();
+      if (unsubMessages) {
+        unsubMessages();
+      }
     };
   }, [isConnected]);
 
-  const loadCachedMessages = async () => {
-    const cachedMessages = (await AsyncStorage.getItem("messages")) || "[]";
-    setMessages(JSON.parse(cachedMessages));
+  const onSend = (newMessages) => {
+    setMessages((previousMessages) =>
+      GiftedChat.append(previousMessages, newMessages)
+    );
+    addDoc(collection(db, "messages"), newMessages[0]);
   };
 
   const cacheMessages = async (messagesToCache) => {
@@ -73,19 +76,9 @@ const Chat = ({ route, storage, navigation, db, auth, isConnected }) => {
     }
   };
 
-  const onSend = (newMessages = []) => {
-    const message = newMessages[0];
-    addDoc(collection(db, "messages"), {
-      _id: message._id,
-      text: message.text || "",
-      createdAt: new Date(),
-      user: {
-        _id: auth.currentUser.uid,
-        name: name,
-      },
-      image: message.image || null,
-      location: message.location || null,
-    });
+  const loadCachedMessages = async () => {
+    const cachedMessages = (await AsyncStorage.getItem("messages")) || "[]";
+    setMessages(JSON.parse(cachedMessages));
   };
 
   const renderInputToolbar = (props) => {
@@ -133,25 +126,12 @@ const Chat = ({ route, storage, navigation, db, auth, isConnected }) => {
   };
 
   const renderCustomActions = (props) => {
-    return (
-      <CustomActions
-        storage={storage}
-        userID={auth.currentUser.uid} // Make sure userID is passed
-        onSend={onSend} // Make sure onSend is passed
-        {...props}
-      />
-    );
+    return <CustomActions storage={storage} {...props} />;
   };
 
   const renderCustomView = (props) => {
     const { currentMessage } = props;
-    // Render a map
-    if (
-      currentMessage &&
-      currentMessage.location &&
-      currentMessage.location.latitude &&
-      currentMessage.location.longitude
-    ) {
+    if (currentMessage.location) {
       return (
         <MapView
           style={{ width: 150, height: 100, borderRadius: 13, margin: 3 }}
@@ -182,7 +162,7 @@ const Chat = ({ route, storage, navigation, db, auth, isConnected }) => {
           renderActions={renderCustomActions}
           renderCustomView={renderCustomView}
           user={{
-            _id: auth.currentUser.uid,
+            _id: userID,
             name: name,
           }}
         />

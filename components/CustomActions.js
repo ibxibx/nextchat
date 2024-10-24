@@ -15,8 +15,6 @@ const CustomActions = ({
 }) => {
   const actionSheet = useActionSheet();
 
-  // Console logs to debug props
-  console.log("CustomActions Props:", { onSend, storage, userID });
   // Show action sheet with options for sending media
   const onActionPress = () => {
     const options = [
@@ -47,6 +45,15 @@ const CustomActions = ({
     );
   };
 
+  // Generate unique filename for uploaded images
+  // Uses userID and timestamp to ensure uniqueness
+  const generateReference = (uri) => {
+    // this will get the file name from the uri
+    const imageName = uri.split("/")[uri.split("/").length - 1];
+    const timeStamp = new Date().getTime();
+    return `${userID}-${timeStamp}-${imageName}`;
+  };
+
   const getLocation = async () => {
     let permissions = await Location.requestForegroundPermissionsAsync();
     if (permissions?.granted) {
@@ -62,73 +69,37 @@ const CustomActions = ({
     } else Alert.alert("Permissions haven't been granted.");
   };
 
-  // Generate unique filename for uploaded images
-  // Uses userID and timestamp to ensure uniqueness
-  const generateReference = (uri) => {
-    // this will get the file name from the uri
-    const imageName = uri.split("/")[uri.split("/").length - 1];
-    const timeStamp = new Date().getTime();
-    return `${userID}-${timeStamp}-${imageName}`;
-  };
-
   // Handle image upload process and send message with image URL
   const uploadAndSendImage = async (imageURI) => {
     try {
-      console.log("Starting image upload...");
-      console.log("Image URI:", imageURI);
-
       const uniqueRefString = generateReference(imageURI);
-      console.log("Generated reference:", uniqueRefString);
-
       const newUploadRef = ref(storage, uniqueRefString);
-      console.log("Created storage reference");
-
       const response = await fetch(imageURI);
-      console.log("Fetched image");
-
       const blob = await response.blob();
-      console.log("Created blob");
-
-      // Convert image URI to blob for Firebase Storage
-      await uploadBytes(newUploadRef, blob);
-      console.log("Uploaded bytes");
-
-      const imageURL = await getDownloadURL(newUploadRef);
-      console.log("Got download URL:", imageURL);
-
-      if (typeof onSend !== "function") {
-        console.error("onSend is not a function:", onSend);
-        Alert.alert("Error", "Cannot send message at this time");
-        return;
-      }
-
-      onSend({ image: imageURL });
-      console.log("Message sent successfully");
+      const snapshot = await uploadBytes(newUploadRef, blob);
+      const imageURL = await getDownloadURL(snapshot.ref);
+      onSend({
+        _id: uniqueRefString,
+        createdAt: new Date(),
+        user: {
+          _id: userID,
+          name: "User",
+        },
+        image: imageURL,
+      });
     } catch (error) {
-      console.error("Error in uploadAndSendImage:", error);
-      Alert.alert("Error", "Failed to upload and send image: " + error.message);
+      console.error("Error uploading image", error);
+      Alert.alert("Error uploading image", error.message);
     }
   };
 
   const pickImage = async () => {
-    try {
-      let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (permissions?.granted) {
-        let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          quality: 1,
-        });
-
-        if (!result.canceled) {
-          console.log("Image picked:", result.assets[0].uri);
-          await uploadAndSendImage(result.assets[0].uri);
-        }
-      } else {
-        Alert.alert("Permissions haven't been granted.");
-      }
-    } catch (error) {
-      console.error("Error in pickImage:", error);
-      Alert.alert("Error", "Failed to pick image: " + error.message);
+    let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissions?.granted) {
+      let result = await ImagePicker.launchImageLibraryAsync();
+      if (!result.canceled) {
+        await uploadAndSendImage(result.assets[0].uri);
+      } else Alert.alert("Permissions haven't been granted.");
     }
   };
 
