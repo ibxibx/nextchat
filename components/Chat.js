@@ -17,11 +17,12 @@ const Chat = ({ route, storage, navigation, db, auth, isConnected }) => {
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    // Set chat screen title to user's name
-    let unsubMessages = null;
+    // Fetch messages from database in real time
+    let unsubMessages;
+
     navigation.setOptions({ title: name });
 
-    if (isConnected) {
+    if (isConnected === true) {
       // Clean up any existing subscription before creating a new one
       if (unsubMessages) {
         unsubMessages();
@@ -149,24 +150,32 @@ const Chat = ({ route, storage, navigation, db, auth, isConnected }) => {
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.container}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
-      >
-        <GiftedChat
-          messages={messages}
-          renderBubble={renderBubble}
-          renderInputToolbar={renderInputToolbar}
-          onSend={(messages) => onSend(messages)}
-          renderActions={renderCustomActions}
-          renderCustomView={renderCustomView}
-          user={{
-            _id: userID,
-            name: name,
-          }}
-        />
-      </KeyboardAvoidingView>
+      <GiftedChat
+        // accessiblity features
+        accessible={true}
+        accessibilityLabel="Message input field"
+        accessibilityHint="Type your message here and then press enter"
+        accessibilityRole="message-input"
+        // displays message bubbles
+        messages={messages}
+        renderBubble={renderBubble}
+        renderInputToolbar={renderInputToolbar}
+        onSend={(messages) => onSend(messages)}
+        renderActions={renderCustomActions}
+        renderCustomView={renderCustomView}
+        user={{
+          _id: userID,
+          name: name,
+        }}
+      />
+      {/* Stops keyboard from hiding message input field for android */}
+      {Platform.OS === "android" ? (
+        <KeyboardAvoidingView behavior="height" />
+      ) : null}
+      {/* and ios */}
+      {Platform.OS === "ios" ? (
+        <KeyboardAvoidingView behavior="padding" />
+      ) : null}
     </View>
   );
 };

@@ -78,6 +78,7 @@ const CustomActions = ({
       const blob = await response.blob();
       const snapshot = await uploadBytes(newUploadRef, blob);
       const imageURL = await getDownloadURL(snapshot.ref);
+
       onSend({
         _id: uniqueRefString,
         createdAt: new Date(),
