@@ -6,6 +6,10 @@ A React Native Mobile Chat Application
 
 NextChat is a feature-rich mobile chat application built with React Native, allowing users to communicate easily through text, images, and location sharing. Our goal is to create a user-friendly chat app for mobile devices, providing a seamless communication experience.
 
+<p align="center">
+  <img src="img/NextChat.jpg" width="800" alt="NextChat Application Screenshot">
+</p>
+
 ## 🌟 Key Features
 
 - User-friendly chat interface
