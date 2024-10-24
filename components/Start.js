@@ -16,6 +16,7 @@ const Start = ({ navigation }) => {
   const [backgroundColor, setBackgroundColor] = useState("");
   const colors = ["#090C08", "#474056", "#8A95A5", "#B9C6AE"];
 
+  // User sign in and choice of a chat background colour
   const signInUser = () => {
     signInAnonymously(auth)
       .then((result) => {

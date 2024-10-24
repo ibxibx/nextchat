@@ -15,7 +15,7 @@ const CustomActions = ({
 }) => {
   const actionSheet = useActionSheet();
 
-  // Show action sheet with options for sending media
+  // Show action sheet with 4 button options
   const onActionPress = () => {
     const options = [
       "Choose From Library",
@@ -48,12 +48,13 @@ const CustomActions = ({
   // Generate unique filename for uploaded images
   // Uses userID and timestamp to ensure uniqueness
   const generateReference = (uri) => {
-    // this will get the file name from the uri
+    // This will get the file name from the uri
     const imageName = uri.split("/")[uri.split("/").length - 1];
     const timeStamp = new Date().getTime();
     return `${userID}-${timeStamp}-${imageName}`;
   };
 
+  // Device location picker
   const getLocation = async () => {
     let permissions = await Location.requestForegroundPermissionsAsync();
     if (permissions?.granted) {
@@ -94,6 +95,7 @@ const CustomActions = ({
     }
   };
 
+  // Function to choose an image from the gallery
   const pickImage = async () => {
     let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissions?.granted) {
@@ -104,6 +106,7 @@ const CustomActions = ({
     }
   };
 
+  // Function to take a selfy or front camera photo
   const takePhoto = async () => {
     let permissions = await ImagePicker.requestCameraPermissionsAsync();
     if (permissions?.granted) {
@@ -116,8 +119,16 @@ const CustomActions = ({
     }
   };
 
+  // Button wrapper
   return (
-    <TouchableOpacity style={styles.container} onPress={onActionPress}>
+    <TouchableOpacity
+      accessible={true}
+      accessibilityLabel="Select optional actions"
+      accessibilityHint="Choose to send an image or your location."
+      accessibilityRole="button"
+      style={styles.container}
+      onPress={onActionPress}
+    >
       <View style={[styles.wrapper, wrapperStyle]}>
         <Text style={[styles.iconText, iconTextStyle]}>+</Text>
       </View>

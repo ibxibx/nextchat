@@ -126,10 +126,19 @@ const Chat = ({ route, storage, navigation, db, auth, isConnected }) => {
     );
   };
 
+  // Creates circle button
   const renderCustomActions = (props) => {
-    return <CustomActions storage={storage} {...props} />;
+    return (
+      <CustomActions
+        onSend={onSend}
+        storage={storage}
+        userID={userID}
+        {...props}
+      />
+    );
   };
 
+  // If currentMessage contains location data, return MapView
   const renderCustomView = (props) => {
     const { currentMessage } = props;
     if (currentMessage.location) {
@@ -149,6 +158,7 @@ const Chat = ({ route, storage, navigation, db, auth, isConnected }) => {
   };
 
   return (
+    // Pass selected background color from start screen
     <View style={[styles.container, { backgroundColor }]}>
       <GiftedChat
         // accessiblity features
