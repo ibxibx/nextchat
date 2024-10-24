@@ -10,12 +10,13 @@ import {
 } from "react-native";
 import { getAuth, signInAnonymously } from "firebase/auth";
 
-const Start = ({ navigation, auth }) => {
+const Start = ({ navigation }) => {
+  const auth = getAuth();
   const [name, setName] = useState("");
-  const [backgroundColor, setBackgroundColor] = useState("#090C08");
-
+  const [backgroundColor, setBackgroundColor] = useState("");
   const colors = ["#090C08", "#474056", "#8A95A5", "#B9C6AE"];
 
+  // User sign in and choice of a chat background colour
   const signInUser = () => {
     signInAnonymously(auth)
       .then((result) => {
@@ -24,9 +25,10 @@ const Start = ({ navigation, auth }) => {
           name: name || "User",
           backgroundColor: backgroundColor,
         });
+        Alert.alert("Signed in Successfully!");
       })
       .catch((error) => {
-        Alert.alert("Unable to sign in, try again later.");
+        Alert.alert("Unable to sign in, try later again.");
       });
   };
 
