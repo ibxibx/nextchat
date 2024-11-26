@@ -42,9 +42,8 @@ NextChat is a feature-rich mobile chat application built with React Native, allo
 - Styled according to provided screen design
 - Chat conversations stored in Google Firestore Database
 - Anonymous user authentication via Google Firebase
-- Local storage of chat conversations
 - Image picking from phone's library and camera integration
-- Firebase Cloud Storage for image storage
+- Firebase Cloud Storage for image storage, chat conversations
 - Device location data reading and sharing
 - Gifted Chat library for chat interface and functionality
 - Well-commented codebase
