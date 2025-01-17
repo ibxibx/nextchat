@@ -36,6 +36,35 @@ NextChat is a feature-rich mobile chat application built with React Native, allo
 - Offline message access
 - Accessibility for users with visual impairments
 
+## 📦 Packages and Libraries
+
+The following npm packages and libraries are used in this project:
+
+| Package | Info |
+|---------|------|
+| expo | Used to build the app and manage api actions |
+| expo-image-picker | Provides access to the system's UI for selecting images and videos from the phone's library or taking a photo with the camera |
+| expo-location | Allows reading geolocation information from the device |
+| expo-permissions | Provides functionality for asking for user's permission to access potentially sensitive content |
+| firebase | Provides an API that allows application data to be synchronized across clients and stored on Firebase's cloud |
+| react | JavaScript library for building user interfaces |
+| react-dom | Package that provides DOM-specific methods for React |
+| react-native | Library used to build native mobile apps |
+| react-native-gifted-chat | Library with the most complete chat UI for React Native |
+| react-native-keyboard-spacer | Library used to correct the position of the keyboard in Android devices |
+| react-native-web | Library to run React Native components and APIs on the web using React DOM |
+| react-navigation | Library with routing and navigation functionality for React Native apps |
+
+To install a specific package, run in the project's directory:
+```bash
+npm install -s [package name]
+```
+
+To install all dependencies at once:
+```bash
+npm install -s
+```
+
 ## 🔧 Technical Requirements
 
 - Developed using React Native and Expo
